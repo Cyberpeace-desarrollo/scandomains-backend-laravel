@@ -112,6 +112,56 @@ class AuthController extends Controller
         return $response;
     } 
 
+    public function loginPermanent(Request $request)
+{
+    $response = null;
+    try {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            $errorMessages = $validator->errors()->all();
+            $errorMessage = implode(', ', $errorMessages);
+            throw new InvalidCredentialsException($errorMessage);
+        }
+
+        if (!Auth::attempt($request->only('email', 'password'))) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Verifica el correo o contraseña',
+                'errors' => ['No Autorizado']
+            ], 401);
+        }
+
+        $user = User::where('email', $request->email)->first();
+
+        // Aquí se genera el token permanente
+        $token = $user->createToken('Permanent API TOKEN', ['*'])->plainTextToken;
+
+        $responseData = [
+            'status' => true,
+            'message' => 'Usuario Logeado Correctamente',
+            'data' => [
+                'name' => $user->name,
+                'email' => $user->email,
+            ],
+            'token' => $token,
+            'expires_at' => null, // Sin fecha de expiración
+        ];
+
+        $response = response()->json($responseData, 200);
+    } catch (InvalidCredentialsException $e) {
+        $response = $this->handleError('Datos invalidos', $e, 422);
+    } catch (\Exception $e) {
+        $response = $this->handleError('Ha ocurrido un error', $e, 500);
+    }
+
+    return $response;
+}
+
+
     public function logout(){
         $response = null;
         try{

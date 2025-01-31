@@ -75,6 +75,7 @@ class FoundSuspiciousDomainController extends Controller
 
             foreach ($validated['suspicious_domains'] as $domain) {
                 if (!in_array($domain, $existingDomains)) {
+                    $nombreImagen = "/uploads/" . uniqid() . ".png";
                     $domainsToInsert[] = [
                         'customer_id' => $customer->id,
                         'suspicious_domain' => $domain,
@@ -83,6 +84,7 @@ class FoundSuspiciousDomainController extends Controller
                         'created_at' => now(),
                         'updated_at' => now()
                     ];
+                    $newDomains[] = $domain;
                 }
             }
     
@@ -96,7 +98,7 @@ class FoundSuspiciousDomainController extends Controller
                 $mensaje .= "**Alerta de Dominio Sospechoso**\n";
                 $mensaje .= "Se detectó un nuevo dominio sospechoso.";
                 
-                $photoUrl = asset($nombreImagen); // Generar URL accesible desde el backend
+                $sendphoto = url($nombreImagen); // Generar URL accesible desde el backend
                 
                 $webhookUrl = env('GENERAL_CHANNEL_URL');
 
@@ -109,7 +111,7 @@ class FoundSuspiciousDomainController extends Controller
                     'embeds' => [
                         [
                             'image' => [
-                                'url' => $photoUrl
+                                'url' => $sendphoto
                             ],
                         ]
                     ]

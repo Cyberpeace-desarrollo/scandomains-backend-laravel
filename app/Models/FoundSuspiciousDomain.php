@@ -12,7 +12,8 @@ class FoundSuspiciousDomain extends Model
     protected $fillable = [
         'suspicious_domain',
         'found_date',
-        'customer_id'
+        'customer_id',
+        'photo_url'
     ];
 
     public function customer()

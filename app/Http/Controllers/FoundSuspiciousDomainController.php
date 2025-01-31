@@ -5,12 +5,10 @@ use Illuminate\Http\Request;
 use App\Models\FoundSuspiciousDomain;
 use App\Models\Customer;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\File;
 use Intervention\Image\Facades\Image;
+use Illuminate\Support\Facades\Http;
 
 
 
@@ -72,6 +70,9 @@ class FoundSuspiciousDomainController extends Controller
                 ->pluck('suspicious_domain')
                 ->toArray(); // Obtener dominios ya registrados para ese cliente
     
+            $newDomains = [];
+            $fechaRegistro = now()->format('Y-m-d H:i:s');
+
             foreach ($validated['suspicious_domains'] as $domain) {
                 if (!in_array($domain, $existingDomains)) {
                     $domainsToInsert[] = [
@@ -86,9 +87,39 @@ class FoundSuspiciousDomainController extends Controller
             }
     
             if (!empty($domainsToInsert)) {
-                FoundSuspiciousDomain::insert($domainsToInsert); // Insertar solo los nuevos
+                FoundSuspiciousDomain::insert($domainsToInsert);
+
+                $mensaje = "**🛑 Se agregó un nuevo dominio sospechoso**\n";
+                $mensaje .= "Para el cliente: **{$customer->name}**.\n";
+                $mensaje .= "📅 Fecha de registro: **{$fechaRegistro}**\n\n";
+                $mensaje .= "🔍 **Dominio registrado:**\n" . implode("\n", array_map(fn($d) => "- {$d}", $newDomains));
+
+                $photoUrl = asset($nombreImagen);
+
+                $webhookUrl = env('GENERAL_CHANNEL_URL');
+                Http::withOptions([
+                    'verify' => false,
+                ])->post($webhookUrl, [
+                    'content' => $mensaje,
+                    'username' => env('NAME_BOT'),
+                    'avatar_url' => env('ICON_WARNING'),
+                    'embeds' => [
+                        [
+                            'title' => 'Alerta de Dominio Sospechoso',
+                            'description' => "Se detecto nuevo dominio sospechoso.",
+                            'image' => [
+                                'url' => $photoUrl
+                            ],
+                        ]
+                    ]
+                ]);
+
             }
     
+            
+
+
+
             return response()->json([
                 'status' => true,
                 'message' => 'Dominios sospechosos agregados correctamente',

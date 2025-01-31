@@ -92,21 +92,22 @@ class FoundSuspiciousDomainController extends Controller
                 $mensaje = "**🛑 Se agregó un nuevo dominio sospechoso**\n";
                 $mensaje .= "Para el cliente: **{$customer->name}**.\n";
                 $mensaje .= "📅 Fecha de registro: **{$fechaRegistro}**\n\n";
-                $mensaje .= "🔍 **Dominio registrado:**\n" . implode("\n", array_map(fn($d) => "- {$d}", $newDomains));
-
-                $photoUrl = asset($nombreImagen);
-
+                $mensaje .= "🔍 **Dominio registrado:**\n" . implode("\n", array_map(fn($d) => "- {$d}", $newDomains)) . "\n\n";
+                $mensaje .= "**Alerta de Dominio Sospechoso**\n";
+                $mensaje .= "Se detectó un nuevo dominio sospechoso.";
+                
+                $photoUrl = asset($nombreImagen); // Generar URL accesible desde el backend
+                
                 $webhookUrl = env('GENERAL_CHANNEL_URL');
+
                 Http::withOptions([
-                    'verify' => false,
+                    'verify' => false, // Desactiva la verificación SSL
                 ])->post($webhookUrl, [
                     'content' => $mensaje,
                     'username' => env('NAME_BOT'),
                     'avatar_url' => env('ICON_WARNING'),
                     'embeds' => [
                         [
-                            'title' => 'Alerta de Dominio Sospechoso',
-                            'description' => "Se detecto nuevo dominio sospechoso.",
                             'image' => [
                                 'url' => $photoUrl
                             ],

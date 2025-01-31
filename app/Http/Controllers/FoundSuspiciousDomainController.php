@@ -6,7 +6,7 @@ use App\Models\Customer;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Http;
 
 
 class InvalidUsersException extends \Exception {}
@@ -51,12 +51,30 @@ class FoundSuspiciousDomainController extends Controller
                     'created_at' => now(),
                     'updated_at' => now()
                 ];
+                $newDomains[] = $domain;
             }
         }
 
         if (!empty($domainsToInsert)) {
             FoundSuspiciousDomain::insert($domainsToInsert); // Insertar solo los nuevos
+            
+            $mensaje = "**🛑 Se agregaron nuevos dominios sospechosos**\n";
+            $mensaje .= "Para el cliente: **{$customer->name}**.\n\n";
+            $mensaje .= "🔍 **Dominios registrados:**\n" . implode("\n", array_map(fn($d) => "- {$d}", $newDomains));
+        
+            $webhookUrl =  env('GENERAL_CHANNEL_URL');
+        
+            Http::withOptions([
+                'verify' => false, // Desactiva la verificación SSL
+            ])->post($webhookUrl, [
+                'content' => $mensaje,
+                'username' => env('NAME_BOT'),
+                'avatar_url' => env('ICON_SUCCESS'),
+            ]);
+        
         }
+
+        
 
         return response()->json([
             'status' => true,

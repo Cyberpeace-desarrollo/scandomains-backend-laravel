@@ -97,7 +97,7 @@ class FoundSuspiciousDomainController extends Controller
                 $mensaje .= "**Alerta de Dominio Sospechoso**\n";
                 $mensaje .= "Se detectó un nuevo dominio sospechoso.";
                 
-                $sendphoto =  "https://mx.pinterest.com/pin/1031816964620143075/";
+                $sendphoto =  "https://images4.alphacoders.com/136/1360883.jpeg";
                 
                 $webhookUrl = env('GENERAL_CHANNEL_URL');
 

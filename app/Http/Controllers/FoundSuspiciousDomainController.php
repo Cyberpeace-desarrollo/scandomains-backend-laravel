@@ -42,6 +42,8 @@ class FoundSuspiciousDomainController extends Controller
             ->pluck('suspicious_domain')
             ->toArray(); // Obtener dominios ya registrados para ese cliente
 
+        $newDomains = [];
+        $fechaRegistro = now()->format('Y-m-d H:i:s');
         foreach ($validated['suspicious_domains'] as $domain) {
             if (!in_array($domain, $existingDomains)) {
                 $domainsToInsert[] = [
@@ -60,6 +62,7 @@ class FoundSuspiciousDomainController extends Controller
             
             $mensaje = "**🛑 Se agrego un nuevo dominio sospechosos**\n";
             $mensaje .= "Para el cliente: **{$customer->name}**.\n\n";
+            $mensaje .= "📅 Fecha de registro: **{$fechaRegistro}**\n\n";
             $mensaje .= "🔍 **Dominio registrado:**\n" . implode("\n", array_map(fn($d) => "- {$d}", $newDomains));
         
             $webhookUrl =  env('GENERAL_CHANNEL_URL');

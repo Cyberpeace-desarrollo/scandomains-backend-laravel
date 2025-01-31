@@ -58,9 +58,9 @@ class FoundSuspiciousDomainController extends Controller
         if (!empty($domainsToInsert)) {
             FoundSuspiciousDomain::insert($domainsToInsert); // Insertar solo los nuevos
             
-            $mensaje = "**🛑 Se agregaron nuevos dominios sospechosos**\n";
+            $mensaje = "**🛑 Se agrego un nuevo dominio sospechosos**\n";
             $mensaje .= "Para el cliente: **{$customer->name}**.\n\n";
-            $mensaje .= "🔍 **Dominios registrados:**\n" . implode("\n", array_map(fn($d) => "- {$d}", $newDomains));
+            $mensaje .= "🔍 **Dominio registrado:**\n" . implode("\n", array_map(fn($d) => "- {$d}", $newDomains));
         
             $webhookUrl =  env('GENERAL_CHANNEL_URL');
         
@@ -69,7 +69,7 @@ class FoundSuspiciousDomainController extends Controller
             ])->post($webhookUrl, [
                 'content' => $mensaje,
                 'username' => env('NAME_BOT'),
-                'avatar_url' => env('ICON_SUCCESS'),
+                'avatar_url' => env('ICON_WARNING'),
             ]);
         
         }

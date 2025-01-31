@@ -116,10 +116,6 @@ class FoundSuspiciousDomainController extends Controller
 
             }
     
-            
-
-
-
             return response()->json([
                 'status' => true,
                 'message' => 'Dominios sospechosos agregados correctamente',

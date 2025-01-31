@@ -75,7 +75,6 @@ class FoundSuspiciousDomainController extends Controller
 
             foreach ($validated['suspicious_domains'] as $domain) {
                 if (!in_array($domain, $existingDomains)) {
-                    $nombreImagen = "/uploads/" . uniqid() . ".png";
                     $domainsToInsert[] = [
                         'customer_id' => $customer->id,
                         'suspicious_domain' => $domain,
@@ -98,12 +97,12 @@ class FoundSuspiciousDomainController extends Controller
                 $mensaje .= "**Alerta de Dominio Sospechoso**\n";
                 $mensaje .= "Se detectó un nuevo dominio sospechoso.";
                 
-                $sendphoto = url($nombreImagen); // Generar URL accesible desde el backend
+                $sendphoto = url('/uploads/' . $nombreImagen);
                 
                 $webhookUrl = env('GENERAL_CHANNEL_URL');
 
                 Http::withOptions([
-                    'verify' => false, // Desactiva la verificación SSL
+                    'verify' => false, 
                 ])->post($webhookUrl, [
                     'content' => $mensaje,
                     'username' => env('NAME_BOT'),

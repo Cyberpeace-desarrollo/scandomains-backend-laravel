@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('suspicious_domain');
             $table->date('found_date')->default(now());
+            $table->string('photo_url');
             $table->foreignId('customer_id')->constrained('customers')->onDelete('cascade');
             $table->timestamps();
         });

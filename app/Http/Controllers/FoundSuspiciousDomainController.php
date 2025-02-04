@@ -97,8 +97,6 @@ class FoundSuspiciousDomainController extends Controller
                 $mensaje .= "**Alerta de Dominio Sospechoso**\n";
                 $mensaje .= "Se detectó un nuevo dominio sospechoso.";
                 
-                $sendphoto =  "https://images4.alphacoders.com/136/1360883.jpeg";
-                
                 $webhookUrl = env('GENERAL_CHANNEL_URL');
 
                 Http::withOptions([
@@ -107,13 +105,6 @@ class FoundSuspiciousDomainController extends Controller
                     'content' => $mensaje,
                     'username' => env('NAME_BOT'),
                     'avatar_url' => env('ICON_WARNING'),
-                    'embeds' => [
-                        [
-                            'image' => [
-                                'url' => $sendphoto
-                            ],
-                        ]
-                    ]
                 ]);
 
             }

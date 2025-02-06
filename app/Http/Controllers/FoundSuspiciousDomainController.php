@@ -149,4 +149,45 @@ public function viewSuspiciousDomains()
     }
 }
 
+public function changeFlagSuspicious(Request $request)
+{
+    try {
+        // Validar los datos de entrada
+        $validated = $request->validate([
+            'suspicious_domain' => 'required|string|exists:found_suspicious_domains,suspicious_domain',
+            'flag' => 'required|boolean'
+        ]);
+
+        // Buscar el dominio en la base de datos
+        $domain = FoundSuspiciousDomain::where('suspicious_domain', $validated['suspicious_domain'])->first();
+
+        if (!$domain) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Dominio sospechoso no encontrado'
+            ], 404);
+        }
+
+        // Actualizar el campo "flag"
+        $domain->flag = $validated['flag'];
+        $domain->save();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'El campo flag se ha actualizado correctamente',
+            'suspicious_domain' => $domain->suspicious_domain,
+            'flag_value' => $validated['flag']
+        ], 200);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => false,
+            'message' => 'Error al actualizar el flag',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+
+
+
 }

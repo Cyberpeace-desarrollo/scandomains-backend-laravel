@@ -31,4 +31,5 @@ Route::middleware(['auth:sanctum','api'])->prefix('/v1')->group(function(){
     Route::post('/add-domain-to-customer', [CustomerController::class, 'addDomainToCustomer']);
     Route::post('/add-suspicious-domains', [FoundSuspiciousDomainController::class, 'addSuspiciousDomains']);
     Route::get('/suspicious-domains', [FoundSuspiciousDomainController::class, 'viewSuspiciousDomains']);
+    Route::post('/change-flag-suspicious', [FoundSuspiciousDomainController::class, 'changeFlagSuspicious']);
 });

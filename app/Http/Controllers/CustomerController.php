@@ -6,51 +6,92 @@ use Illuminate\Http\Request;
 use App\Models\Customer;
 use App\Models\DomainCustomer;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+use Intervention\Image\Facades\Image;
+
+
 
 class UnauthorizedUserException extends \Exception {}
 
 class CustomerController extends Controller
 {
+   
     public function addCustomer(Request $request)
     {
-        // Validar los datos recibidos
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'domains' => 'required|array',
-            'domains.*' => 'required|string|max:255',
-        ]);
 
         try {
             $aUser = Auth::user();
             if (!$aUser) {
-                throw new UnauthorizedUserException('Usuario no autenticado');
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Usuario no autenticado'
+                ], 401);
             }
 
-            // Crear el registro en la tabla 'customers'
+             // Validar los datos recibidos
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'domains' => 'required|array',
+            'domains.*' => 'required|string|max:255',
+            'image' => 'required|image|mimes:jpeg,png,jpg|max:2048', // Imagen opcional
+        ]);
+    
+            // Verificar si el cliente ya existe
+            $customer = Customer::where('name', $request->name)->first();
+    
+            if ($customer) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'El cliente ya existe',
+                    'data' => [
+                        'customer' => $customer,
+                    ]
+                ], 200);
+            }
+    
+            // Crear el nuevo cliente
             $customer = Customer::create([
                 'name' => $request->name,
             ]);
-
-            // Insertar los dominios relacionados en la tabla 'domain_customer'
+    
+            // Guardar la imagen si se envió
+            if ($request->hasFile('image')) {
+                $imagen = $request->file('image');
+                $nombreImagen = Str::uuid() . '.' . $imagen->getClientOriginalExtension();
+    
+                $imagenServidor = Image::make($imagen);
+                $imagenServidor->fit(1000, 1000);
+                $imagenPath = public_path('uploads') . '/' . $nombreImagen;
+    
+                if (!file_exists(public_path('uploads'))) {
+                    mkdir(public_path('uploads'), 0777, true);
+                }
+    
+                $imagenServidor->save($imagenPath);
+    
+                // Guardar la URL en la BD
+                $customer->photo_url = 'uploads/' . $nombreImagen;
+                $customer->save();
+            }
+    
+            // Insertar los dominios relacionados
             foreach ($request->domains as $domain) {
                 DomainCustomer::create([
                     'domain' => $domain,
                     'customer_id' => $customer->id,
                 ]);
             }
-
-            // Retornar respuesta exitosa
+    
             return response()->json([
                 'status' => true,
                 'message' => 'Cliente y dominios agregados correctamente',
                 'data' => [
                     'customer' => $customer,
                     'domains' => $request->domains,
-                ],
+                ]
             ], 201);
-
+    
         } catch (\Exception $e) {
-            // Manejar errores
             return response()->json([
                 'status' => false,
                 'message' => 'Ocurrió un error al agregar el cliente',
@@ -58,6 +99,7 @@ class CustomerController extends Controller
             ], 500);
         }
     }
+    
 
     public function addDomainToCustomer(Request $request)
 {

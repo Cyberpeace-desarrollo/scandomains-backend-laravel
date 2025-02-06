@@ -13,7 +13,8 @@ class FoundSuspiciousDomain extends Model
         'suspicious_domain',
         'found_date',
         'customer_id',
-        'photo_url'
+        'photo_url',
+        'flag'
     ];
 
     public function customer()

@@ -32,4 +32,7 @@ Route::middleware(['auth:sanctum','api'])->prefix('/v1')->group(function(){
     Route::post('/add-suspicious-domains', [FoundSuspiciousDomainController::class, 'addSuspiciousDomains']);
     Route::get('/suspicious-domains', [FoundSuspiciousDomainController::class, 'viewSuspiciousDomains']);
     Route::post('/change-flag-suspicious', [FoundSuspiciousDomainController::class, 'changeFlagSuspicious']);
+    Route::post('/customer/add-image', [CustomerController::class, 'addCustomerImage']);
+    Route::delete('/customer/delete-image', [CustomerController::class, 'deleteCustomerImage']);
+
 });

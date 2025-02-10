@@ -8,7 +8,15 @@ use Illuminate\Database\Eloquent\Model;
 class Customer extends Model
 {
     use HasFactory;
-    protected $fillable = ['name'];
+    protected $fillable = [
+        'name',
+        'photo_url', 
+        'photo_url1', 
+        'photo_url2', 
+        'photo_url3', 
+        'photo_url4', 
+        'photo_url5'
+    ];
 
     public function domainCustomers()
     {

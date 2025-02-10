@@ -14,6 +14,12 @@ return new class extends Migration
         Schema::create('customers', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('photo_url');
+            $table->string('photo_url1')->nullable();
+            $table->string('photo_url2')->nullable();
+            $table->string('photo_url3')->nullable();
+            $table->string('photo_url4')->nullable();
+            $table->string('photo_url5')->nullable();
             $table->timestamps();
         });
     }

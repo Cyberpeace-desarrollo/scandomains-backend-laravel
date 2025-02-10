@@ -159,6 +159,145 @@ class CustomerController extends Controller
     }
 }
 
+public function addCustomerImage(Request $request)
+    {
+        try {
+            $aUser = Auth::user();
+            if (!$aUser) {
+                throw new UnauthorizedUserException('Usuario no autenticado');
+            }
+            // Validar la solicitud
+            $request->validate([
+                'name' => 'required|string|exists:customers,name',
+                'image' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+            ]);
+
+            // Buscar el cliente por nombre
+            $customer = Customer::where('name', $request->name)->first();
+
+            if (!$customer) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Cliente no encontrado',
+                ], 404);
+            }
+
+            // Revisar en qué campo se puede guardar la imagen
+            $imageFields = ['photo_url1', 'photo_url2', 'photo_url3', 'photo_url4', 'photo_url5'];
+            $availableField = null;
+
+            foreach ($imageFields as $field) {
+                if (!$customer->$field) {
+                    $availableField = $field;
+                    break;
+                }
+            }
+
+            // Si no hay espacio disponible, devolver error
+            if (!$availableField) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Todos los campos de imagen están llenos',
+                ], 400);
+            }
+
+            // Procesar y guardar la imagen
+            $imagen = $request->file('image');
+            $nombreImagen = Str::uuid() . '.' . $imagen->getClientOriginalExtension();
+
+            $imagenServidor = Image::make($imagen);
+            $imagenServidor->fit(1000, 1000);
+            $imagenPath = public_path('uploads') . '/' . $nombreImagen;
+
+            if (!file_exists(public_path('uploads'))) {
+                mkdir(public_path('uploads'), 0777, true);
+            }
+
+            $imagenServidor->save($imagenPath);
+
+            // Guardar la URL en la base de datos
+            $customer->$availableField = 'uploads/' . $nombreImagen;
+            $customer->save();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Imagen guardada correctamente',
+                'data' => [
+                    'customer' => $customer,
+                    'field_used' => $availableField,
+                ]
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Error al guardar la imagen',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function deleteCustomerImage(Request $request)
+{
+    try {
+        $aUser = Auth::user();
+            if (!$aUser) {
+                throw new UnauthorizedUserException('Usuario no autenticado');
+            }
+            
+        // Validar que se envíe el nombre del cliente y el campo de la imagen
+        $request->validate([
+            'name' => 'required|string|exists:customers,name',
+            'field' => 'required|string|in:photo_url,photo_url1,photo_url2,photo_url3,photo_url4,photo_url5',
+        ]);
+
+        // Buscar el cliente por su nombre
+        $customer = Customer::where('name', $request->name)->first();
+
+        if (!$customer) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Cliente no encontrado'
+            ], 404);
+        }
+
+        // Verificar si el campo de imagen tiene un valor
+        $field = $request->field;
+        if (!$customer->$field) {
+            return response()->json([
+                'status' => false,
+                'message' => 'El campo de imagen está vacío'
+            ], 400);
+        }
+
+        // Eliminar la imagen del servidor si existe
+        $imagePath = public_path($customer->$field);
+        if (file_exists($imagePath)) {
+            unlink($imagePath);
+        }
+
+        // Eliminar la referencia en la base de datos
+        $customer->$field = null;
+        $customer->save();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Imagen eliminada correctamente',
+            'data' => [
+                'customer_name' => $customer->name,
+                'deleted_field' => $field
+            ]
+        ], 200);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => false,
+            'message' => 'Error al eliminar la imagen',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+
+
 
 
     public function viewCustomers()

@@ -29,7 +29,7 @@ Route::middleware(['auth:sanctum','api'])->prefix('/v1')->group(function(){
     Route::post('addcustomer', [CustomerController::class, 'addCustomer']);
     Route::get('customers/view', [CustomerController::class, 'viewCustomers']);
     Route::post('/add-domain-to-customer', [CustomerController::class, 'addDomainToCustomer']);
-    Route::post('/add-suspicious-domains', [FoundSuspiciousDomainController::class, 'addSuspiciousDomains']);
+    Route::post('add-suspicious-domains', [FoundSuspiciousDomainController::class, 'addSuspiciousDomains']);
     Route::get('/suspicious-domains', [FoundSuspiciousDomainController::class, 'viewSuspiciousDomains']);
     Route::post('/change-flag-suspicious', [FoundSuspiciousDomainController::class, 'changeFlagSuspicious']);
     Route::post('/customer/add-image', [CustomerController::class, 'addCustomerImage']);

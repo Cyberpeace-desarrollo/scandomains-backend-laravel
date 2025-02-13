@@ -39,7 +39,11 @@ class FoundSuspiciousDomainController extends Controller
                 'suspicious_domains' => 'required|array',
                 'suspicious_domains.*' => 'required|string',
                 'image' => 'required|image|mimes:jpeg,png,jpg|max:2048', // Validación de la imagen
+                'flag' => 'required|string'
             ]);
+
+             // Convertir el flag a booleano manualmente
+            $validated['flag'] = filter_var($request->input('flag'), FILTER_VALIDATE_BOOLEAN);
     
             // Buscar el cliente por su nombre
             $customer = Customer::where('name', $validated['name'])->first();
@@ -79,6 +83,7 @@ class FoundSuspiciousDomainController extends Controller
                         'customer_id' => $customer->id,
                         'suspicious_domain' => $domain,
                         'photo_url' => $nombreImagen, // Guardar el nombre de la imagen
+                        'flag' => $validated['flag'],
                         'found_date' => now(),
                         'created_at' => now(),
                         'updated_at' => now()

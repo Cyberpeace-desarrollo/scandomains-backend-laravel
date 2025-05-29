@@ -28,17 +28,17 @@ class AuthController extends Controller
                 'name' => 'required|min:4',
                 'email' => 'required|email|unique:users',
                 'password' => 'required|min:8|max:16',
-      
+
             ]);
-            
+
            if ($validator->fails()) {
                 $errorMessages = $validator->errors()->all();
                 $errorMessage = implode(', ', $errorMessages);
                 throw new InvalidUsersException($errorMessage);
             }
-            
-            
-            //crea el usario $user = 
+
+
+            //crea el usario $user =
            User::create([
                 'name'=> $request->name,
                 'email'=> $request->email,
@@ -48,13 +48,13 @@ class AuthController extends Controller
             date_default_timezone_set('America/Mexico_City');
             $name = $request->name;
             $email = $request->email;
-    
+
 
             $responseData = [
                 'status'=> true,
                 'message'=> 'Usuario Creado Correctamente',
             ];
-    
+
             $response = response()->json($responseData, 200);
 
         }catch (InvalidUsersException $e) {
@@ -67,6 +67,99 @@ class AuthController extends Controller
         return $response;
     }
 
+    public function deleteAccount(Request $request)
+{
+    $response = null;
+    try {
+        $aUser = Auth::user();
+        if (!$aUser) {
+            throw new UnauthorizedUserException('Usuario no autenticado');
+        }
+
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:users,email',
+        ]);
+
+        if ($validator->fails()) {
+            $errorMessages = $validator->errors()->all();
+            $errorMessage = implode(', ', $errorMessages);
+            throw new InvalidUsersException($errorMessage);
+        }
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            throw new \Exception('El usuario no existe');
+        }
+
+        $user->delete();
+
+        $responseData = [
+            'status' => true,
+            'message' => 'Cuenta eliminada correctamente',
+        ];
+
+        $response = response()->json($responseData, 200);
+
+    } catch (InvalidUsersException $e) {
+        $response = $this->handleError('Datos inválidos', $e, 422);
+    } catch (UnauthorizedUserException $e) {
+        $response = $this->handleError('Usuario no autenticado', $e, 401);
+    } catch (\Exception $e) {
+        $response = $this->handleError('Ha ocurrido un error al eliminar la cuenta', $e, 500);
+    }
+
+    return $response;
+}
+
+public function changePassword(Request $request)
+{
+    $response = null;
+    try {
+        $aUser = Auth::user();
+        if (!$aUser) {
+            throw new UnauthorizedUserException('Usuario no autenticado');
+        }
+
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:users,email',
+            'new_password' => 'required|min:8|max:16',
+        ]);
+
+        if ($validator->fails()) {
+            $errorMessages = $validator->errors()->all();
+            $errorMessage = implode(', ', $errorMessages);
+            throw new InvalidUsersException($errorMessage);
+        }
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            throw new \Exception('El usuario no existe');
+        }
+
+        $user->password = bcrypt($request->new_password);
+        $user->save();
+
+        $responseData = [
+            'status' => true,
+            'message' => 'Contraseña actualizada correctamente',
+        ];
+
+        $response = response()->json($responseData, 200);
+
+    } catch (InvalidUsersException $e) {
+        $response = $this->handleError('Datos inválidos', $e, 422);
+    } catch (UnauthorizedUserException $e) {
+        $response = $this->handleError('Usuario no autenticado', $e, 401);
+    } catch (\Exception $e) {
+        $response = $this->handleError('Error al cambiar la contraseña', $e, 500);
+    }
+
+    return $response;
+}
+
+
     public function login(Request $request){
         $response = null;
         try{
@@ -74,7 +167,7 @@ class AuthController extends Controller
                 'email' => 'required|email',
                 'password' => 'required',
             ]);
-    
+
             if ($validator->fails()) {
                 $errorMessages = $validator->errors()->all();
                 $errorMessage = implode(', ', $errorMessages);
@@ -89,7 +182,7 @@ class AuthController extends Controller
                 ],401);
             }
             $user = User::where('email',$request->email)->first();
-            
+
             $expiration = Carbon::now()->addMinutes(config('sanctum.expiration'));
             //'data'=>$user,
             $responseData = [
@@ -102,7 +195,7 @@ class AuthController extends Controller
                 'token'=> $user->createToken('API TOKEN')->plainTextToken,
                 'expires_at' => $expiration->toDateTimeString(),
             ];
-    
+
             $response = response()->json($responseData, 200);
         }catch (InvalidCredentialsException $e) {
             $response = $this->handleError('Datos invalidos', $e, 422);
@@ -110,7 +203,7 @@ class AuthController extends Controller
             $response = $this->handleError('Ha ocurrido un error', $e, 500);
         }
         return $response;
-    } 
+    }
 
     public function loginPermanent(Request $request)
 {
@@ -175,7 +268,7 @@ class AuthController extends Controller
                     'status'=> true,
                     'message'=> 'Usuario Cerro Sesión Correctamente',
                 ];
-        
+
                 $response = response()->json($responseData, 200);
             }
         }catch (\Exception $e) {
